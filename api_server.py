@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
-from skeleton import ArXiv, Wiki, Medium, Website
+from skeleton import ArXiv, Wiki, Medium, Website, PDF
 
 app = Flask(__name__)
 CORS(app)
@@ -14,6 +14,8 @@ def link():
         return ArXiv(url).getJSONString()
     elif('medium.com' in url):
         return Medium(url).getJSONString()
+    elif('.pdf' in url):
+        return PDF(url).getJSONString()
     else:
         return Website(url).getJSONString()
 

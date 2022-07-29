@@ -4,6 +4,7 @@ import json
 from dotenv import dotenv_values
 import os
 from pymongo import MongoClient
+import PyPDF2, io
 
 dotenv_values(".env")
 client = MongoClient(os.environ.get("MONGO_URL"))
@@ -13,7 +14,6 @@ try:
     infoCollection = infoDB['info-collection']
 except:
     print("cannot connect to DB")
-
 
 class Website:
     def __init__(self, url):
@@ -70,6 +70,48 @@ class Website:
         response = session.get(self.url)
         return response.html
         
+class PDF(Website):
+    def __init__(self, url):
+        super().__init__(url)
+        if(self.saved == False):
+            self.save()
+    def exportToDB(self):
+        self.pdfReader = PyPDF2.PdfFileReader(io.BytesIO(self.html._html))
+        self.getParagraphs()
+        return {'title': self.getTitle(),
+             'url': self.getURL(),
+             'summary': self.getSummary(),
+             'paragraphs': self.getParagraphs(), 
+             'links': self.getLinks() }
+    def save(self):
+        self.saved = True
+        if(infoCollection != None): infoCollection.insert_one(self.exportToDB())       
+    def getTitle(self):
+        if(self.title == None):
+            try: self.title = self.pdfReader.getDocumentInfo().title
+            except: self.title = super().getTitle()
+        return self.title
+    def getURL(self):
+        return self.url
+    def getLinks(self):
+        return []
+    def getParagraphs(self):
+        if(self.paragraphs == None):
+            try: self.paragraphs = [self.pdfReader.getPage(i).extractText() for i in range(self.pdfReader.numPages)]
+            except: self.paragraphs = ['error occured']
+        return self.paragraphs
+    def getSummary(self):
+        if(self.summary == None):
+            try: self.summary = self.paragraphs[0]
+            except: self.summary = 'error occured'
+        return self.summary
+    def getJSON(self):
+        return {'title': self.getTitle(),
+             'url': self.getURL(),
+             'summary': self.getSummary()}
+    def getJSONString(self):
+        info = self.getJSON()
+        return json.dumps(info)
 class Wiki(Website):
     def __init__(self, url):
         url = url.split('#')[0]
@@ -122,7 +164,7 @@ class Wiki(Website):
 
 class ArXiv(Website):
     def __init__(self, url):
-        url = url.replace('.pdf', '')
+        url = url.replace('.pdf', '').replace('pdf','abs') # in case url comes in the form of pdf
         self.url = url
         self.authors = None
         super().__init__(url)
