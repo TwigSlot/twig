@@ -1,12 +1,12 @@
 # from bs4 import BeautifulSoup
 from requests_html import HTMLSession
 import json
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 import os
 from pymongo import MongoClient
 import PyPDF2, io
 
-dotenv_values(".env")
+load_dotenv(".env")
 client = MongoClient(os.environ.get("MONGO_URL"))
 infoDB, infoCollection = None, None
 try:

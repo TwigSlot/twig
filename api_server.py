@@ -19,6 +19,9 @@ def link():
     else:
         return Website(url).getJSONString()
 
+if(__name__=="__main__"):
+    print("running app directly")
+    app.run(host="127.0.0.1",port=5000,debug=False,threaded=True)
 
 # wiki = Wiki('https://en.wikipedia.org/wiki/Quantum_field_theory#:~:text=In%20theoretical%20physics%2C%20quantum%20field,to%20construct%20models%20of%20quasiparticles.')
 # print(wiki.getTitle())
